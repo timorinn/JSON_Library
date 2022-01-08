@@ -1,17 +1,15 @@
-import LibraryJSON.JSONObject;
-import LibraryJSON.JSONParser;
+import LibraryJSON.JsonObject;
+import LibraryJSON.JsonParser;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Scanner;
 
 public class Main {
 	public static void main(String[] args) {
 		try {
-			String url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Stack%20Overflow&redirects=1&formatversion=2&exlimit=1&exintro=1&explaintext=1";
+			String url = "https://test.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Stack%20Overflow&redirects=1&formatversion=2&exlimit=1&exintro=1&explaintext=1";
 
 			URL obj = new URL(url);
 			HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
@@ -29,7 +27,7 @@ public class Main {
 
 			System.out.println(response.toString());
 
-			JSONObject jsonObject = new JSONParser(response.toString()).parseBody();
+			JsonObject jsonObject = new JsonParser(response.toString()).parseBody();
 
 		} catch (Exception e) {
 			System.out.println("EXCEPTION ! ! ! " + e.toString());
