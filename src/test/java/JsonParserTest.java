@@ -20,7 +20,7 @@ public class JsonParserTest {
 	}
 
 
-	@Test
+//	@Test
 	public void nullJsonTest() {
 		Assert.assertThrows(NullPointerException.class, ()-> {
 			JsonParser jsonParser = new JsonParser(null);
@@ -28,7 +28,7 @@ public class JsonParserTest {
 	}
 
 
-	@Test
+//	@Test
 	public void minimalJsonTest() {
 		JsonParser jsonParser = null;
 
@@ -42,7 +42,7 @@ public class JsonParserTest {
 
 
 	//todo нарущен принцип единой ответственности
-	@Test
+//	@Test
 	public void simpleJsonTest() {
 		JsonObject jsonObject = null;
 		

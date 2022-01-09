@@ -145,7 +145,7 @@ public class JsonParser {
 	}
 
 	public JsonObject parseBody() throws Exception {
-		JsonFormatChecker.checkFormatBody(body);
+		new JsonFormatChecker(body).checkFormat();
 
 //		checkBodyLength();
 //		checkFirstAndLastChar();
