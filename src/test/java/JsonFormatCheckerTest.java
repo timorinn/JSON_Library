@@ -1,30 +1,28 @@
 import LibraryJSON.JsonFormatChecker;
-import LibraryJSON.JsonFormatException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class JsonFormatCheckerTest {
 
-	final private static String STATUS_START_BLOCK = "STATUS_START_BLOCK";
-	final private static String STATUS_KEY_FIRST_QUOTER = "STATUS_KEY_FIRST_QUOTER";
-	final private static String STATUS_KEY_SECOND_QUOTER = "STATUS_KEY_SECOND_QUOTER";
-	final private static String STATUS_COLON = "STATUS_COLON";
-	final private static String STATUS_VALUE = "STATUS_VALUE";
-	final private static String STATUS_VALUE_SIMPLE_ARRAY = "STATUS_VALUE_SIMPLE_ARRAY";
-	final private static String STATUS_VALUE_BLOCK_ARRAY = "STATUS_VALUE_BLOCK_ARRAY";
-	final private static String STATUS_VALUE_END_COMMA = "STATUS_VALUE_END_COMMA";
+	@Test
+	public void emptyCorrectJsonTest() {
+		Assert.assertEquals(new JsonFormatChecker("{}").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("	 	{}").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("{}	 	").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("	 	{}	 	").checkFormat(), 0);
+
+		Assert.assertEquals(new JsonFormatChecker("{	 	}").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("	 	{	 	}").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("{		}	 	").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("	 	{	 	}	 	").checkFormat(), 0);
+	}
 
 	@Test
-	public void checkCorrectJsonTest() {
-		String json = "{}";
-		try {
-			Assert.assertEquals(new JsonFormatChecker(json).checkFormat(), 0);
-		} catch (Exception e) {
-			Assert.fail(e.getMessage());
-		}
+	public void stringCorrectJsonTest() {
+		Assert.assertEquals(new JsonFormatChecker("{\"key\":\"value\"}").checkFormat(), 0);
+		Assert.assertEquals(new JsonFormatChecker("{\"  k e y  \":\"  v1 2_ al u e \" }").checkFormat(), 0);
+
 	}
 
 //	@Test
