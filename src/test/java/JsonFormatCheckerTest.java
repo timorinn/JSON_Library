@@ -6,24 +6,73 @@ import org.junit.Test;
 public class JsonFormatCheckerTest {
 
 	@Test
-	public void emptyCorrectJsonTest() {
-		Assert.assertEquals(new JsonFormatChecker("{}").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("	 	{}").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("{}	 	").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("	 	{}	 	").checkFormat(), 0);
-
-		Assert.assertEquals(new JsonFormatChecker("{	 	}").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("	 	{	 	}").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("{		}	 	").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("	 	{	 	}	 	").checkFormat(), 0);
+	public void correctEmptyJsonTest() {
+		Assert.assertEquals(0, new JsonFormatChecker("{}").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("	 	{}").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("{}	 	").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("	 	{}	 	").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("{	 	}").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("	 	{	 	}").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("{		}	 	").checkFormat());
+		Assert.assertEquals(0, new JsonFormatChecker("	 	{	 	}	 	").checkFormat());
 	}
 
 	@Test
-	public void stringCorrectJsonTest() {
-		Assert.assertEquals(new JsonFormatChecker("{\"key\":\"value\"}").checkFormat(), 0);
-		Assert.assertEquals(new JsonFormatChecker("{\"  k e y  \":\"  v1 2_ al u e \" }").checkFormat(), 0);
+	public void incorrectEmptyJsonTest() {
+		Assert.assertEquals(-1, new JsonFormatChecker("").checkFormat());
+		Assert.assertEquals(-1, new JsonFormatChecker("  	{  ").checkFormat());
+		Assert.assertEquals(-1, new JsonFormatChecker("{_}").checkFormat());
+		Assert.assertEquals(-1, new JsonFormatChecker("   } ").checkFormat());
+		Assert.assertEquals(-1, new JsonFormatChecker("{     }}").checkFormat());
+		Assert.assertEquals(-1, new JsonFormatChecker("{{    }").checkFormat());
 
 	}
+
+	@Test
+	public void correctSingleStringJsonTest() {
+		Assert.assertEquals(0
+				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("correctSingleStringJson"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("correctSingleStringJson2"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("correctSingleStringJson3"))
+						.checkFormat());
+	}
+
+	@Test
+	public void incorrectSingleStringTest() {
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("incorrectSingleStringJson"))
+						.checkFormat());
+
+	}
+
+	@Test
+	public void correctMultipleStingsJsonTest() {
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctMultipleStringsJson"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctMultipleStringsJson2"))
+						.checkFormat());
+	}
+
+	@Test
+	public void incorrectMultipleStingsJsonTest() {
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectMultipleStringsJson"))
+						.checkFormat());
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectMultipleStringsJson2"))
+						.checkFormat());
+	}
+
 
 //	@Test
 //	public void checkStartBlockCorrectTest() {

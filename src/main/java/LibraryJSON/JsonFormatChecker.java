@@ -1,5 +1,7 @@
 package LibraryJSON;
 
+import java.util.HashSet;
+
 public class JsonFormatChecker {
 	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
 	final private static String STATE_KEY_FIRST_QUOTER = "STATE_KEY_FIRST_QUOTER";
@@ -16,9 +18,11 @@ public class JsonFormatChecker {
 	final private static String STATE_ERROR = "STATE_ERROR";
 	final private static String STATE_NEXT = "STATE_NEXT";
 
+	private HashSet<String> keys;
 	private String state;
 	private String body;
-	private int index;
+	private int keyStart;
+	private int currentBodyIndex;
 	private int bodySize;
 
 	// todo
@@ -28,26 +32,41 @@ public class JsonFormatChecker {
 		this.body = body.trim();
 		this.bodySize = this.body.length();
 		this.state = STATE_START_BLOCK;
-		this.index = 0;
+		this.currentBodyIndex = 0;
+		this.keys = new HashSet<>();
 	}
 
 	private char getCurrentChar() {
-		return body.charAt(index);
+		return body.charAt(currentBodyIndex);
 	}
 
 	private void skipSpaces() {
 		//todo
-		while (index < bodySize - 1 && Character.isWhitespace(getCurrentChar())) {
-			index++;
+		while (currentBodyIndex < bodySize - 1 && Character.isWhitespace(getCurrentChar())) {
+			currentBodyIndex++;
 		}
 	}
 
-	// todo мне кажец тут что то как то не оч
-	private void skipSymbols() {
-		//todo обрабатывать \"
-		while (index < bodySize - 1 && getCurrentChar() != '\"') {
-			index++;
+	private int skipValueString() {
+		//todo обрабатывать \" (?)
+		int cnt = 0;
+
+		while (currentBodyIndex < bodySize - 1 && getCurrentChar() != '\"') {
+			currentBodyIndex++;
+			cnt++;
 		}
+		return cnt;
+	}
+
+	private int skipKeyName() {
+		int cnt = 0;
+
+		while (currentBodyIndex < bodySize - 1 && getCurrentChar() != '\"'
+				&& (Character.isAlphabetic(getCurrentChar()) || Character.isDigit(getCurrentChar()))) {
+			currentBodyIndex++;
+			cnt++;
+		}
+		return cnt;
 	}
 
 	private void checkStartBlock() {
@@ -58,8 +77,9 @@ public class JsonFormatChecker {
 		skipSpaces();
 
 		if (getCurrentChar() == '\"') {
+			keyStart = currentBodyIndex + 1;
 			state = STATE_KEY_NAME_AND_SECOND_QUOTER;
-		} else if (getCurrentChar() == '}' && index == bodySize - 1) {
+		} else if (getCurrentChar() == '}' && currentBodyIndex == bodySize - 1) {
 			state = STATE_SUCCESS;
 		} else {
 			state = STATE_ERROR;
@@ -67,8 +87,19 @@ public class JsonFormatChecker {
 	}
 
 	private void checkKeyNameAndSecondQuoter() {
-		skipSymbols();
-		state = getCurrentChar() == '"' ? STATE_COLON : STATE_ERROR;
+		int keyLength;
+		String keyName;
+
+		state = STATE_ERROR;
+		keyLength = skipKeyName();
+
+		if (getCurrentChar() == '\"' && keyLength > 0) {
+			keyName = body.substring(keyStart, currentBodyIndex);
+			if (!keys.contains(keyName)) {
+				keys.add(keyName);
+				state = STATE_COLON;
+			}
+		}
 	}
 
 	private void checkColon() {
@@ -77,7 +108,8 @@ public class JsonFormatChecker {
 	}
 
 	private void checkValueString() {
-		skipSymbols();
+		skipValueString();
+
 		state = getCurrentChar() == '\"' ? STATE_NEXT : STATE_ERROR;
 	}
 
@@ -95,6 +127,8 @@ public class JsonFormatChecker {
 	}
 
 	private void checkValue() {
+		skipSpaces();
+
 		if (getCurrentChar() == '\"') {
 			state = STATE_VALUE_STRING;
 		} else if (getCurrentChar() == 't') {
@@ -111,43 +145,34 @@ public class JsonFormatChecker {
 	}
 
 	public int checkFormat() {
-		for (;index < bodySize; index++) {
+		for (; currentBodyIndex < bodySize; currentBodyIndex++) {
 			switch (state) {
 				case STATE_SUCCESS:
 					//todo
-					System.out.println("STATE_SUCCESS");
 					state = STATE_ERROR;
 					break;
 				case STATE_ERROR:
-					System.out.println("STATE_ERROR");
 					//todo
 					return -1;
 				case STATE_START_BLOCK:
-					System.out.println("STATE_START_BLOCK");
 					checkStartBlock();
 					break;
 				case STATE_KEY_FIRST_QUOTER:
-					System.out.println("STATE_KEY_FIRST_QUOTER");
 					checkKeyFirstQuoter();
 					break;
 				case STATE_KEY_NAME_AND_SECOND_QUOTER:
-					System.out.println("STATE_KEY_NAME_AND_SECOND_QUOTER");
 					checkKeyNameAndSecondQuoter();
 					break;
 				case STATE_COLON:
-					System.out.println("STATE_COLON");
 					checkColon();
 					break;
 				case STATE_VALUE:
-					System.out.println("STATE_VALUE");
 					checkValue();
 					break;
 				case STATE_VALUE_STRING:
-					System.out.println("STATE_VALUE_STRING");
 					checkValueString();
 					break;
 				case STATE_NEXT:
-					System.out.println("STATE_NEXT");
 					checkNext();
 					break;
 /*
@@ -168,8 +193,7 @@ public class JsonFormatChecker {
 			}
 			*/
 				case STATE_CHECK_END:
-					System.out.println("STATE_CHECK_END");
-					if (body.charAt(index) == '}') {
+					if (body.charAt(currentBodyIndex) == '}') {
 						state = STATE_SUCCESS;
 					}
 					break;
