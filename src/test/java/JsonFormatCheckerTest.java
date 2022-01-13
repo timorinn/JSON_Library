@@ -25,7 +25,6 @@ public class JsonFormatCheckerTest {
 		Assert.assertEquals(-1, new JsonFormatChecker("   } ").checkFormat());
 		Assert.assertEquals(-1, new JsonFormatChecker("{     }}").checkFormat());
 		Assert.assertEquals(-1, new JsonFormatChecker("{{    }").checkFormat());
-
 	}
 
 	@Test
@@ -46,7 +45,9 @@ public class JsonFormatCheckerTest {
 		Assert.assertEquals(-1
 				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("incorrectSingleStringJson"))
 						.checkFormat());
-
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(TestLibrary.getStringFromFileFromResources("incorrectSingleStringJson2"))
+						.checkFormat());
 	}
 
 	@Test
@@ -73,6 +74,66 @@ public class JsonFormatCheckerTest {
 						.checkFormat());
 	}
 
+	@Test
+	public void correctSpecialJsonTest() {
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctSpecialJson"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctSpecialJson2"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctSpecialJson3"))
+						.checkFormat());
+	}
+
+	@Test
+	public void incorrectSpecialJsonTest() {
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectSpecialJson"))
+						.checkFormat());
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectSpecialJson2"))
+						.checkFormat());
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectSpecialJson3"))
+						.checkFormat());
+	}
+
+	@Test
+	public void correctBlockJsonTest() {
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctBlockJson"))
+						.checkFormat());
+		Assert.assertEquals(0
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("correctBlockJson2"))
+						.checkFormat());
+
+	}
+
+	@Test
+	public void incorrectBlockJsonTest() {
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectBlockJson"))
+						.checkFormat());
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectBlockJson2"))
+						.checkFormat());
+		Assert.assertEquals(-1
+				, new JsonFormatChecker(
+						TestLibrary.getStringFromFileFromResources("incorrectBlockJson2"))
+						.checkFormat());
+	}
 
 //	@Test
 //	public void checkStartBlockCorrectTest() {
