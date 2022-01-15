@@ -4,11 +4,11 @@ import java.util.HashSet;
 
 public class JsonFormatChecker {
 	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
-	final private static String STATE_KEY_FIRST_QUOTER = "STATE_KEY_FIRST_QUOTER";
-	final private static String STATE_KEY_NAME_AND_SECOND_QUOTER = "STATE_KEY_NAME_AND_SECOND_QUOTER";
+	final private static String STATE_CHECK_KEY = "STATE_CHECK_KEY";
+//	final private static String STATE_KEY_FIRST_QUOTER = "STATE_KEY_FIRST_QUOTER";
+//	final private static String STATE_KEY_NAME_AND_SECOND_QUOTER = "STATE_KEY_NAME_AND_SECOND_QUOTER";
 	final private static String STATE_COLON = "STATE_COLON";
 	final private static String STATE_VALUE = "STATE_VALUE";
-	final private static String STATE_CHECK_END = "STATE_CHECK_END";
 	final private static String STATE_SUCCESS = "STATE_SUCCESS";
 	final private static String STATE_ERROR = "STATE_ERROR";
 	final private static String STATE_NEXT = "STATE_NEXT";
@@ -17,11 +17,13 @@ public class JsonFormatChecker {
 	final private static String ARRAY_NUMBERS = "ARRAY_NUMBERS";
 	final private static String ARRAY_BOOLEANS = "ARRAY_BOOLEANS";
 	final private static String ARRAY_BLOCKS = "ARRAY_BLOCKS";
+	final private static String ARRAY_ARRAYS = "ARRAY_ARRAYS";
+	final private static String ARRAY_NULLS = "ARRAY_NULLS";
+
 
 	private HashSet<String> keys;
 	private String state;
 	private String body;
-	private int keyStart;
 	private int currentIndex;
 	private int bodyLength;
 
@@ -75,35 +77,30 @@ public class JsonFormatChecker {
 
 
 	private void checkStartBlock() {
-		state = getCurrentChar() == '{' ? STATE_KEY_FIRST_QUOTER : STATE_ERROR;
+		state = getCurrentChar() == '{' ? STATE_CHECK_KEY : STATE_ERROR;
 	}
 
 
-	private void checkKeyFirstQuoter() {
-		skipSpaces();
-
-		if (getCurrentChar() == '\"') {
-			keyStart = currentIndex + 1;
-			state = STATE_KEY_NAME_AND_SECOND_QUOTER;
-		} else if (getCurrentChar() == '}' && currentIndex == bodyLength - 1) {
-			state = STATE_SUCCESS;
-		} else {
-			state = STATE_ERROR;
-		}
-	}
-
-	private void checkKeyNameAndSecondQuoter() {
-		int keyLength;
+	//todo можно сделать лучше, выглядит некрасиво
+	private void checkKey() {
 		String keyName;
+		int keyLength;
+		int keyStart;
 
+		skipSpaces();
 		state = STATE_ERROR;
-		keyLength = skipKeyName();
 
-		if (getCurrentChar() == '\"' && keyLength > 0) {
-			keyName = body.substring(keyStart, currentIndex);
-			if (!keys.contains(keyName)) {
-				keys.add(keyName);
-				state = STATE_COLON;
+		if (getCurrentChar() == '}' && currentIndex == bodyLength - 1) {
+			state = STATE_SUCCESS;
+		} else if (getCurrentChar() == '\"') {
+			keyStart = currentIndex++;
+			keyLength = skipKeyName();
+			if (getCurrentChar() == '\"' && keyLength > 0) {
+				keyName = body.substring(keyStart, currentIndex);
+				if (!keys.contains(keyName)) {
+					keys.add(keyName);
+					state = STATE_COLON;
+				}
 			}
 		}
 	}
@@ -184,7 +181,54 @@ public class JsonFormatChecker {
 
 
 	private void checkValueArray() {
+		int startArrayIndex = currentIndex;
 
+	}
+
+
+	private void defineArrayElementType() {
+		String arrType = ARRAY_NULLS;
+
+//		skipSpaces();
+		switch (getCurrentChar()) {
+			case '\"':
+				arrType = ARRAY_STRINGS;
+				break;
+			case 't':
+			case 'f':
+				//todo
+				arrType = ARRAY_BOOLEANS;
+				break;
+			case 'n':
+				//todo
+				arrType = ARRAY_NULLS;
+				break;
+			case '{':
+				//todo
+				arrType = ARRAY_BLOCKS;
+				break;
+			case '[':
+				//todo
+				arrType = ARRAY_ARRAYS;
+				break;
+			case '-':
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				//todo
+				arrType = ARRAY_NUMBERS;
+				break;
+			default:
+				//todo
+				state = STATE_ERROR;
+		}
 	}
 
 
@@ -193,7 +237,8 @@ public class JsonFormatChecker {
 
 		//todo чувствую тут чот не так
 		if (getCurrentChar() == ',') {
-			state = STATE_KEY_FIRST_QUOTER;
+//			state = STATE_KEY_FIRST_QUOTER;
+			state = STATE_CHECK_KEY;
 		} else if (getCurrentChar() == '}') {
 			state = STATE_SUCCESS;
 		} else {
@@ -215,11 +260,8 @@ public class JsonFormatChecker {
 				case STATE_START_BLOCK:
 					checkStartBlock();
 					break;
-				case STATE_KEY_FIRST_QUOTER:
-					checkKeyFirstQuoter();
-					break;
-				case STATE_KEY_NAME_AND_SECOND_QUOTER:
-					checkKeyNameAndSecondQuoter();
+				case STATE_CHECK_KEY:
+					checkKey();
 					break;
 				case STATE_COLON:
 					checkColon();
@@ -229,11 +271,6 @@ public class JsonFormatChecker {
 					break;
 				case STATE_NEXT:
 					checkNext();
-					break;
-				case STATE_CHECK_END:
-					if (body.charAt(currentIndex) == '}') {
-						state = STATE_SUCCESS;
-					}
 					break;
 			}
 			// todo завершить цепочку статусов
