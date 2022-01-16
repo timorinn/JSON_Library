@@ -2,11 +2,13 @@ import LibraryJSON.JsonFormatChecker;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.awt.*;
+
 
 public class JsonFormatCheckerTest {
 
 	@Test
-	public void correctEmptyJsonTest() {
+	public void correctEmpty() {
 		Assert.assertEquals(0, new JsonFormatChecker("{}").checkFormat());
 		Assert.assertEquals(0, new JsonFormatChecker("	 	{}").checkFormat());
 		Assert.assertEquals(0, new JsonFormatChecker("{}	 	").checkFormat());
@@ -18,7 +20,7 @@ public class JsonFormatCheckerTest {
 	}
 
 	@Test
-	public void incorrectEmptyJsonTest() {
+	public void incorrectEmpty() {
 		Assert.assertEquals(-1, new JsonFormatChecker("").checkFormat());
 		Assert.assertEquals(-1, new JsonFormatChecker("  	{  ").checkFormat());
 		Assert.assertEquals(-1, new JsonFormatChecker("{_}").checkFormat());
@@ -27,61 +29,96 @@ public class JsonFormatCheckerTest {
 		Assert.assertEquals(-1, new JsonFormatChecker("{{    }").checkFormat());
 	}
 
-	@Test
-	public void correctSingleStringJsonTest() {
-		TestLibrary.testJsonFile("correctSingleStringJson");
-		TestLibrary.testJsonFile("correctSingleStringJson2");
-		TestLibrary.testJsonFile("correctSingleStringJson3");
-	}
-
-	@Test
-	public void incorrectSingleStringJsonTest() {
-		TestLibrary.testJsonFile("incorrectSingleStringJson");
-		TestLibrary.testJsonFile("incorrectSingleStringJson2");
-	}
 
 
 	@Test
-	public void correctMultipleStingsJsonTest() {
-		TestLibrary.testJsonFile("correctMultipleStringsJson");
-		TestLibrary.testJsonFile("correctMultipleStringsJson2");
-		TestLibrary.testJsonFile("correctMultipleStringsJson3");
+	public void correctString() {
+		TestLibrary.testJsonFile("correctString/1");
+		TestLibrary.testJsonFile("correctString/2");
+		TestLibrary.testJsonFile("correctString/3");
 	}
 
 	@Test
-	public void incorrectMultipleStingsJsonTest() {
-		TestLibrary.testJsonFile("incorrectMultipleStringsJson");
-		TestLibrary.testJsonFile("incorrectMultipleStringsJson2");
+	public void incorrectString() {
+		TestLibrary.testJsonFile("incorrectString/1");
+		TestLibrary.testJsonFile("incorrectString/2");
+	}
+
+
+
+	@Test
+	public void correctMultiple() {
+		TestLibrary.testJsonFile("correctMultiple/1");
+		TestLibrary.testJsonFile("correctMultiple/2");
+		TestLibrary.testJsonFile("correctMultiple/3");
 	}
 
 	@Test
-	public void correctSpecialJsonTest() {
-		TestLibrary.testJsonFile("correctSpecialJson");
-		TestLibrary.testJsonFile("correctSpecialJson2");
-		TestLibrary.testJsonFile("correctSpecialJson3");
+	public void incorrectMultiple() {
+		TestLibrary.testJsonFile("incorrectMultiple/1");
+		TestLibrary.testJsonFile("incorrectMultiple/2");
+	}
+
+
+
+	@Test
+	public void correctSpecial() {
+		TestLibrary.testJsonFile("correctSpecial/1");
+		TestLibrary.testJsonFile("correctSpecial/2");
+		TestLibrary.testJsonFile("correctSpecial/3");
 	}
 
 	@Test
-	public void incorrectSpecialJsonTest() {
-		TestLibrary.testJsonFile("incorrectSpecialJson");
-		TestLibrary.testJsonFile("incorrectSpecialJson2");
-		TestLibrary.testJsonFile("incorrectSpecialJson3");
+	public void incorrectSpecial() {
+		TestLibrary.testJsonFile("incorrectSpecial/1");
+		TestLibrary.testJsonFile("incorrectSpecial/2");
+		TestLibrary.testJsonFile("incorrectSpecial/3");
+	}
+
+
+
+	@Test
+	public void correctNumber() {
+		TestLibrary.testJsonFile("correctNumber/1");
+		TestLibrary.testJsonFile("correctNumber/2");
+		TestLibrary.testJsonFile("correctNumber/3");
+		TestLibrary.testJsonFile("correctNumber/4");
+		TestLibrary.testJsonFile("correctNumber/5");
 	}
 
 	@Test
-	public void correctBlockJsonTest() {
-		TestLibrary.testJsonFile("correctBlockJson");
-		TestLibrary.testJsonFile("correctBlockJson2");
+	public void incorrectNumber() {
+		// TODO: 16.01.2022
 	}
 
 	@Test
-	public void incorrectBlockJsonTest() {
-		TestLibrary.testJsonFile("incorrectBlockJson");
-		TestLibrary.testJsonFile("incorrectBlockJson");
-		TestLibrary.testJsonFile("incorrectBlockJson");
+	public void correctBlock() {
+		TestLibrary.testJsonFile("correctBlock/1");
+		TestLibrary.testJsonFile("correctBlock/2");
+		TestLibrary.testJsonFile("correctBlock/3");
+		TestLibrary.testJsonFile("correctBlock/4");
+		TestLibrary.testJsonFile("correctBlock/5");
+	}
+
+	@Test
+	public void incorrectBlock() {
+		TestLibrary.testJsonFile("incorrectBlock/1");
+		TestLibrary.testJsonFile("incorrectBlock/1");
+		TestLibrary.testJsonFile("incorrectBlock/1");
 	}
 
 
+
+	@Test
+	public void correctArray() {
+		TestLibrary.testJsonFile("correctArray/1");
+	}
+
+	@Test
+	public void incorrectArray() {
+
+	}
+//
 //	@Test
 //	public void checkStartBlockCorrectTest() {
 //		String methodName = "checkStartBlock";
@@ -98,7 +135,7 @@ public class JsonFormatCheckerTest {
 //			Assert.fail("Something problems: " + e.toString());
 //		}
 //	}
-
+//
 //	@Test
 //	public void checkStartBlockIncorrectTest() {
 //		String methodName = "checkStartBlock";

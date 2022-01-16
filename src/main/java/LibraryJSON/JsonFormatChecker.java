@@ -5,8 +5,6 @@ import java.util.HashSet;
 public class JsonFormatChecker {
 	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
 	final private static String STATE_CHECK_KEY = "STATE_CHECK_KEY";
-//	final private static String STATE_KEY_FIRST_QUOTER = "STATE_KEY_FIRST_QUOTER";
-//	final private static String STATE_KEY_NAME_AND_SECOND_QUOTER = "STATE_KEY_NAME_AND_SECOND_QUOTER";
 	final private static String STATE_COLON = "STATE_COLON";
 	final private static String STATE_VALUE = "STATE_VALUE";
 	final private static String STATE_SUCCESS = "STATE_SUCCESS";
@@ -52,15 +50,13 @@ public class JsonFormatChecker {
 	}
 
 
-	private int skipValueString() {
-		//todo обрабатывать \" (?)
-		int cnt = 0;
-
-		while (currentIndex < bodyLength - 1 && getCurrentChar() != '\"') {
+	private void skipValueString() {
+		while (currentIndex < bodyLength - 1) {
+			if (getCurrentChar() == '\"' && currentIndex > 0 && body.charAt(currentIndex - 1) != '\\') {
+				break;
+			}
 			currentIndex++;
-			cnt++;
 		}
-		return cnt;
 	}
 
 
@@ -88,7 +84,6 @@ public class JsonFormatChecker {
 		int keyStart;
 
 		skipSpaces();
-		state = STATE_ERROR;
 
 		if (getCurrentChar() == '}' && currentIndex == bodyLength - 1) {
 			state = STATE_SUCCESS;
@@ -100,8 +95,12 @@ public class JsonFormatChecker {
 				if (!keys.contains(keyName)) {
 					keys.add(keyName);
 					state = STATE_COLON;
+				} else {
+					state = STATE_ERROR;
 				}
 			}
+		} else {
+			state = STATE_ERROR;
 		}
 	}
 
@@ -115,60 +114,136 @@ public class JsonFormatChecker {
 	private void checkValue() {
 		skipSpaces();
 
-		if (getCurrentChar() == '\"') {
-			currentIndex++;
-			checkValueString();
-		} else if (getCurrentChar() == 't' && checkValueSpecial("true") == 0) {
-			//todo надо сделать поизящнее
-			currentIndex += 3;
+		switch (getCurrentChar()) {
+			case '\"' -> checkValueString();
+			case '{' -> checkValueBlock();
+			case '[' -> checkValueArray();
+			case 't', 'f', 'n' -> checkValueSpecial();
+			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> checkValueNumber();
+			default -> state = STATE_ERROR;
+		}
+	}
+
+
+	private void checkValueString() {
+		currentIndex++;
+		skipValueString();
+		state = getCurrentChar() == '\"' ? STATE_NEXT : STATE_ERROR;
+	}
+
+
+	private void checkValueNumber() {
+		boolean afterPoint = false;
+		boolean afterExp = false;
+
+		if (getCurrentChar() == '-') {
+			if (currentIndex < bodyLength - 1) {
+				currentIndex++;
+			} else {
+				state = STATE_ERROR;
+				return;
+			}
+		}
+
+		if (getCurrentChar() == '0') {
+			if (currentIndex < bodyLength - 1) {
+				currentIndex++;
+			} else {
+				state = STATE_ERROR;
+				return;
+			}
+		} else if (Character.isDigit(getCurrentChar())) {
+			while (currentIndex < bodyLength - 1 && Character.isDigit(getCurrentChar())) {
+				currentIndex++;
+			}
+		} else {
+			state = STATE_ERROR;
+			return;
+		}
+
+		if (getCurrentChar() == '.') {
+			if (currentIndex < bodyLength - 1) {
+				currentIndex++;
+				while (currentIndex < bodyLength - 1 && Character.isDigit(getCurrentChar())) {
+					currentIndex++;
+					afterPoint = true;
+				}
+				if (!afterPoint) {
+					state = STATE_ERROR;
+					return;
+				}
+			} else {
+				state = STATE_ERROR;
+				return;
+			}
+		}
+
+		if (getCurrentChar() == '-' || getCurrentChar() == '+') {
+			if (currentIndex < bodyLength - 1) {
+				currentIndex++;
+				if (currentIndex < bodyLength - 1 && Character.toLowerCase(getCurrentChar()) == 'e') {
+					currentIndex++;
+					if (getCurrentChar() == '0') {
+						state = STATE_ERROR;
+						return;
+					}
+					while (currentIndex < bodyLength - 1 && Character.isDigit(getCurrentChar())) {
+						afterExp = true;
+						currentIndex++;
+					}
+					if (!afterExp) {
+						state = STATE_ERROR;
+						return;
+					}
+				} else {
+					state = STATE_ERROR;
+					return;
+				}
+			} else {
+				state = STATE_ERROR;
+				return;
+			}
+		}
+		currentIndex--;
+		state = STATE_NEXT;
+	}
+
+
+	private int strInStr(String mainStr, int startIndex, String expectedStr) {
+		int mainStrLength = mainStr.length();
+		int expectedStrLength = expectedStr.length();
+		int i;
+
+		for (i = 0; i + startIndex < mainStrLength && i < expectedStrLength; i++) {
+			if (mainStr.charAt(startIndex + i) != expectedStr.charAt(i)) {
+				return -1;
+			}
+		}
+		return i == expectedStrLength ? 0 : -1;
+	}
+
+
+	private void checkValueSpecial() {
+		String valueSpecial;
+
+		switch (getCurrentChar()) {
+			case 't' -> valueSpecial = "true";
+			case 'f' -> valueSpecial = "false";
+			case 'n' -> valueSpecial = "null";
+			default -> { state = STATE_ERROR; return;}
+		}
+
+		if (strInStr(body, currentIndex, valueSpecial) == 0) {
+			currentIndex += valueSpecial.length() - 1;
 			state = STATE_NEXT;
-		} else if (getCurrentChar() == 'f' && checkValueSpecial("false") == 0) {
-			//todo надо сделать поизящнее
-			currentIndex += 4;
-			state = STATE_NEXT;
-		} else if (getCurrentChar() == 'n' && checkValueSpecial("null") == 0) {
-			//todo надо сделать поизящнее
-			currentIndex += 3;
-			state = STATE_NEXT;
-		} else if (getCurrentChar() == '{') {
-			checkValueBlock();
-		} else if (getCurrentChar() == '[') {
-			checkValueArray();
 		} else {
 			state = STATE_ERROR;
 		}
 	}
 
 
-	private void checkValueString() {
-		skipValueString();
-
-		state = getCurrentChar() == '\"' ? STATE_NEXT : STATE_ERROR;
-	}
-
-
-	/**
-	 * Check value: true, false, null
-	 */
-	private int checkValueSpecial(String value) {
-		int valueLength = value.length();
-
-		// todo проверить условие
-		if (currentIndex + valueLength < bodyLength ) {
-			for (int i = 0; i < valueLength; i++) {
-				if (value.charAt(i) != body.charAt(currentIndex + i)) {
-					return -1;
-				}
-			}
-			return 0;
-		} else {
-			return -1;
-		}
-	}
-
-
 	private void checkValueBlock() {
-		int closeBracketIndex = JsonCommon.getNextBracker(body, currentIndex, '{');
+		int closeBracketIndex = JsonCommon.getNextBlockBracket(body, currentIndex);
 
 		if (closeBracketIndex != -1
 				&& new JsonFormatChecker(body.substring(currentIndex, closeBracketIndex + 1)).checkFormat() != -1) {
@@ -180,54 +255,31 @@ public class JsonFormatChecker {
 	}
 
 
+	// TODO: 15.01.2022 дописать :-----------(
 	private void checkValueArray() {
 		int startArrayIndex = currentIndex;
+		int endArrayIndex;
 
+		endArrayIndex = JsonCommon.getNextBlockBracket(body, startArrayIndex);
+		if (endArrayIndex == -1) {
+			state = STATE_ERROR;
+			return;
+		}
+
+		// TODO: 17.01.2022
 	}
-
 
 	private void defineArrayElementType() {
 		String arrType = ARRAY_NULLS;
 
-//		skipSpaces();
 		switch (getCurrentChar()) {
-			case '\"':
-				arrType = ARRAY_STRINGS;
-				break;
-			case 't':
-			case 'f':
-				//todo
-				arrType = ARRAY_BOOLEANS;
-				break;
-			case 'n':
-				//todo
-				arrType = ARRAY_NULLS;
-				break;
-			case '{':
-				//todo
-				arrType = ARRAY_BLOCKS;
-				break;
-			case '[':
-				//todo
-				arrType = ARRAY_ARRAYS;
-				break;
-			case '-':
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				//todo
-				arrType = ARRAY_NUMBERS;
-				break;
-			default:
-				//todo
-				state = STATE_ERROR;
+			case '\"' -> arrType = ARRAY_STRINGS;
+			case 't', 'f' -> arrType = ARRAY_BOOLEANS;
+			case 'n' -> arrType = ARRAY_NULLS;
+			case '{' -> arrType = ARRAY_BLOCKS;
+			case '[' -> arrType = ARRAY_ARRAYS;
+			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> arrType = ARRAY_NUMBERS;
+			default -> state = STATE_ERROR;
 		}
 	}
 
@@ -235,9 +287,7 @@ public class JsonFormatChecker {
 	private void checkNext() {
 		skipSpaces();
 
-		//todo чувствую тут чот не так
 		if (getCurrentChar() == ',') {
-//			state = STATE_KEY_FIRST_QUOTER;
 			state = STATE_CHECK_KEY;
 		} else if (getCurrentChar() == '}') {
 			state = STATE_SUCCESS;
@@ -250,13 +300,6 @@ public class JsonFormatChecker {
 	public int checkFormat() {
 		for (; currentIndex < bodyLength; currentIndex++) {
 			switch (state) {
-				case STATE_SUCCESS:
-					//todo
-					state = STATE_ERROR;
-					break;
-				case STATE_ERROR:
-					//todo
-					return -1;
 				case STATE_START_BLOCK:
 					checkStartBlock();
 					break;
@@ -272,8 +315,12 @@ public class JsonFormatChecker {
 				case STATE_NEXT:
 					checkNext();
 					break;
+				case STATE_SUCCESS:
+					state = STATE_ERROR;
+					break;
+				case STATE_ERROR:
+					return -1;
 			}
-			// todo завершить цепочку статусов
 		}
 		return state.equals(STATE_SUCCESS) ? 0 : -1;
 	}

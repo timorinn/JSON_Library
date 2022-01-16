@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 public class TestLibrary {
 	private static String pathToTestFiles = "src/test/resources/";
 
-
 	public static void testJsonFile(String fileName) {
 		String jsonText = getStringFromFileFromResources(fileName);
 		int expectedResult = (fileName.startsWith("correct") ? 0 : -1);
