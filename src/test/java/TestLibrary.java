@@ -1,7 +1,7 @@
-import LibraryJSON.JsonFormatChecker;
+import LibraryJSON.JsonFormatException;
+import LibraryJSON.JsonParser;
 import org.junit.Assert;
 
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -13,7 +13,11 @@ public class TestLibrary {
 		int expectedResult = (fileName.startsWith("correct") ? 0 : -1);
 
 		if (jsonText != null) {
-			Assert.assertEquals(expectedResult, new JsonFormatChecker(jsonText).checkFormat());
+			try {
+				Assert.assertEquals(expectedResult, new JsonParser(jsonText).checkFormat());
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
 		} else {
 			Assert.fail("File '" + fileName + "' does not exists.");
 		}

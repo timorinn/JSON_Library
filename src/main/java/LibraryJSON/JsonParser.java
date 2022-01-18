@@ -1,161 +1,384 @@
 package LibraryJSON;
 
-import java.util.HashMap;
+import java.util.HashSet;
 
 public class JsonParser {
+	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
+	final private static String STATE_CHECK_KEY = "STATE_CHECK_KEY";
+	final private static String STATE_COLON = "STATE_COLON";
+	final private static String STATE_VALUE = "STATE_VALUE";
+	final private static String STATE_SUCCESS = "STATE_SUCCESS";
+	final private static String STATE_ERROR = "STATE_ERROR";
+	final private static String STATE_NEXT = "STATE_NEXT";
+
+	final private static String ARRAY_STRINGS = "ARRAY_STRING";
+	final private static String ARRAY_NUMBERS = "ARRAY_NUMBERS";
+	final private static String ARRAY_BOOLEANS = "ARRAY_BOOLEANS";
+	final private static String ARRAY_BLOCKS = "ARRAY_BLOCKS";
+	final private static String ARRAY_ARRAYS = "ARRAY_ARRAYS";
+	final private static String ARRAY_NULLS = "ARRAY_NULLS";
+
+
+	private HashSet<String> keys;
+	private String state;
 	private String body;
-	private HashMap<Object, Object> paramArray = new HashMap();
-	private int ptr = 1;
-	private int bodySize;
+	private String currentKey;
+	private int currentIndex;
+	private int startIndex;
+	private int endIndex;
 
-	public JsonParser(String body) {
-		//todo
-		if (body == null) {
-			throw new NullPointerException("body is null");
-		}
-		ptr = 1;
-		setBody(body);
-		bodySize = body.length();
+	// todo
+//	private String processMessage;
+
+	public JsonParser(String body) throws JsonFormatException {
+		this(body, 0, body.length());
 	}
 
-	public String getBody() {
-		return body;
-	}
 
-	private void setBody(String body) {
+	public JsonParser(String body, int startIndex, int endIndex) {
 		this.body = body;
+		this.startIndex = startIndex;
+		this.endIndex = endIndex;
+		this.state = STATE_START_BLOCK;
+		this.currentIndex = startIndex;
+		this.keys = new HashSet<>();
 	}
 
-	private void checkBodyLength() throws JsonFormatException {
-		if (body.length() < 2) {
-			throw new JsonFormatException("Length of body (" + body.length() + ") is too small.");
+
+	private char getCurrentChar() {
+		return body.charAt(currentIndex);
+	}
+
+
+	private void skipSpaces() {
+		//todo
+		while (currentIndex < endIndex - 1 && Character.isWhitespace(getCurrentChar())) {
+			currentIndex++;
 		}
 	}
 
-	private void checkFirstAndLastChar() throws JsonFormatException {
-		char firstChar = body.charAt(0);
-		char lastChar = body.charAt(body.length() - 1);
 
-		if (firstChar != '{') {
-			throw new JsonFormatException("Incorrect first symbol '" + firstChar + "' expected '{'.");
-		}
-		if (lastChar != '}') {
-			throw new JsonFormatException("Incorrect last symbol '" + lastChar + "' expected '}'.");
-		}
-	}
-
-	// todo возможно стоит не int, а void с использованием исключений
-	private int getNextCloseBracket(int startPos, char openBracket) {
-		char closeBracket = (openBracket == '{' ? '}' : ']');
-		int cntBrackets = 1;
-
-		for (int i = startPos + 1; i < body.length() - 1; i++) {
-			if (body.charAt(i) == openBracket) {
-				cntBrackets++;
-			} else if (body.charAt(i) == closeBracket) {
-				cntBrackets--;
+	private void skipValueString() {
+		while (currentIndex < endIndex - 1) {
+			if (getCurrentChar() == '\"' && currentIndex > 0 && body.charAt(currentIndex - 1) != '\\') {
+				break;
 			}
-			if (cntBrackets == 0) {
-				return i;
-			}
+			currentIndex++;
 		}
-		return -1;
 	}
 
-	private int getParameterEndIndex(int startParameterIndex) throws JsonFormatException {
-		int endParameterIndex;
-		char c;
 
-		//экономия ресурсов
-		for (int i = startParameterIndex + 1; i < body.length() - 1; i++) {
-			c = body.charAt(i);
+	private int skipKeyName() {
+		int cnt = 0;
 
-			if (c == '\"') {
-				return i;
-			} else if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
-				throw new JsonFormatException("missing second quoter.");
-			}
+		while (currentIndex < endIndex - 1 && getCurrentChar() != '\"'
+				&& (Character.isAlphabetic(getCurrentChar()) || Character.isDigit(getCurrentChar()))) {
+			currentIndex++;
+			cnt++;
 		}
-		throw new JsonFormatException("missing second quoter.");
+		return cnt;
 	}
 
-	private int getValueEndIndex(int startValueIndex) {
-		char startValueChar = body.charAt(startValueIndex);
 
-		System.out.println("startValueChar: " +  startValueChar);
+	private void checkStartBlock() {
+		skipSpaces();
 
-		if (startValueChar != '{' && startValueChar != '[') {
-			if (body.indexOf(',') == -1) {
-				return body.indexOf('}');
-			} else {
-				return body.indexOf(',');
+		state = getCurrentChar() == '{' ? STATE_CHECK_KEY : STATE_ERROR;
+	}
+
+
+	//todo можно сделать лучше, выглядит некрасиво
+	private void checkKey() {
+//	private Object checkKey() {
+		String keyName;
+		int keyLength;
+		int keyStart = currentIndex;
+
+		skipSpaces();
+
+		if (getCurrentChar() == '}') {
+			state = STATE_SUCCESS;
+		} else if (getCurrentChar() == '\"') {
+			currentIndex++;
+			keyLength = skipKeyName();
+			if (getCurrentChar() == '\"' && keyLength > 0) {
+				keyName = body.substring(keyStart, currentIndex + 1);
+//				if (!keys.contains(keyName)) {
+//					keys.add(keyName);
+					state = STATE_COLON;
+//				} else {
+//					state = STATE_ERROR;
+//				}
 			}
 		} else {
-			//todo
-			return getNextCloseBracket(startValueIndex, startValueChar) + 1;
+			state = STATE_ERROR;
+		}
+	}
+//
+//	private String readKey() {
+//		String keyName;
+//		int keyLength;
+//		int keyStart = currentIndex;
+//
+//		skipSpaces();
+//
+//		if (getCurrentChar() == '}') {
+////			state = STATE_SUCCESS;
+//			return null;
+//		} else if (getCurrentChar() == '\"') {
+//			currentIndex++;
+//			keyLength = skipKeyName();
+//			if (getCurrentChar() == '\"' && keyLength > 0) {
+//				keyName = body.substring(keyStart, currentIndex);
+//				if (!keys.contains(keyName)) {
+//					keys.add(keyName);
+////					state = STATE_COLON;
+//					return body.substring(keyStart, currentIndex + 1);
+//				} else {
+////					state = STATE_ERROR;
+//					return null;
+//				}
+//			}
+//		} else {
+////			state = STATE_ERROR;
+//			return null;
+//		}
+//	}
+//
+	private void checkColon() {
+		skipSpaces();
+		state = getCurrentChar() == ':' ? STATE_VALUE : STATE_ERROR;
+	}
+
+
+	private void getValue() {
+		Object value = null;
+
+		skipSpaces();
+
+		switch (getCurrentChar()) {
+			case '\"' -> value = getValueString();
+			case '{' -> value = getValueBlock();
+			case '[' -> getValueArray();
+			case 't', 'f', 'n' -> value = checkValueSpecial();
+			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> value = getValueNumber();
+			default -> state = STATE_ERROR;
+		}
+
+		if (value != null) {
+//			System.out.println(((String) value));
+			state = STATE_NEXT;
 		}
 	}
 
-	private void checkFirstParameterQuoter(int startParameterIndex) throws JsonFormatException {
-		if (body.charAt(startParameterIndex) != '\"') {
-			throw new JsonFormatException("first symbol must be quoter.");
+
+	private Object getValueString() {
+		int startValue = currentIndex;
+
+		currentIndex++;
+		skipValueString();
+		return getCurrentChar() == '\"' ? body.substring(startValue, currentIndex + 1): null;
+	}
+
+
+	private String getValueNumber() {
+		boolean afterPoint = false;
+		boolean afterExp = false;
+		int startNumber = currentIndex;
+
+		if (getCurrentChar() == '-') {
+			if (currentIndex < endIndex - 1) {
+				currentIndex++;
+			} else {
+				return null;
+			}
+		}
+
+		if (getCurrentChar() == '0') {
+			if (currentIndex < endIndex - 1) {
+				currentIndex++;
+			} else {
+				return null;
+			}
+		} else if (Character.isDigit(getCurrentChar())) {
+			while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
+				currentIndex++;
+			}
+		} else {
+			return null;
+		}
+
+		if (getCurrentChar() == '.') {
+			if (currentIndex < endIndex - 1) {
+				currentIndex++;
+				while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
+					currentIndex++;
+					afterPoint = true;
+				}
+				if (!afterPoint) {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+
+		if (getCurrentChar() == '-' || getCurrentChar() == '+') {
+			if (currentIndex < endIndex - 1) {
+				currentIndex++;
+				if (currentIndex < endIndex - 1 && Character.toLowerCase(getCurrentChar()) == 'e') {
+					currentIndex++;
+					if (getCurrentChar() == '0') {
+						return null;
+					}
+					while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
+						afterExp = true;
+						currentIndex++;
+					}
+					if (!afterExp) {
+						return null;
+					}
+				} else {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+		currentIndex--;
+		return body.substring(startNumber, currentIndex + 1);
+	}
+
+
+	private int strInStr(String mainStr, int startIndex, String expectedStr) {
+		int mainStrLength = mainStr.length();
+		int expectedStrLength = expectedStr.length();
+		int i;
+
+		for (i = 0; i + startIndex < mainStrLength && i < expectedStrLength; i++) {
+			if (mainStr.charAt(startIndex + i) != expectedStr.charAt(i)) {
+				return -1;
+			}
+		}
+		return i == expectedStrLength ? 0 : -1;
+	}
+
+
+	private String checkValueSpecial() {
+		String valueSpecial;
+
+		switch (getCurrentChar()) {
+			case 't' -> valueSpecial = "true";
+			case 'f' -> valueSpecial = "false";
+			case 'n' -> valueSpecial = "null";
+			default -> {
+				return null;
+			}
+		}
+
+		if (strInStr(body, currentIndex, valueSpecial) == 0) {
+			currentIndex += valueSpecial.length() - 1;
+			return valueSpecial;
+		} else {
+			return null;
 		}
 	}
 
-	private void checkFirstQuoter() {
 
-	}
+	private JsonParser getValueBlock() {
+		JsonParser jsonParser;
+		int closeBracketIndex = JsonCommon.getNextBlockBracket(body, currentIndex);
 
-	private void checkColon(int endParameterIndex) throws JsonFormatException {
-		if (body.charAt(endParameterIndex + 1) != ':') {
-			throw new JsonFormatException("Missing colon in position " + (endParameterIndex + 1) + ".");
+		if (closeBracketIndex != -1) {
+			try {
+				jsonParser = new JsonParser(body.substring(currentIndex, closeBracketIndex + 1));
+			} catch (JsonFormatException je) {
+				return null;
+			}
+			currentIndex = closeBracketIndex;;
+			return jsonParser;
+		} else {
+			return null;
 		}
 	}
 
-	private void getParameterAndValue(int startParameterIndex) throws JsonFormatException {
-		int endParameterIndex;
-		String parameter;
-		int startValueIndex;
-		int endValueIndex;
-		Object value;
 
-		if (startParameterIndex == bodySize - 1) {
-			ptr = -1;
+	// TODO: 15.01.2022 дописать :-----------(
+	private void getValueArray() {
+		int startArrayIndex = currentIndex;
+		int endArrayIndex;
+
+		endArrayIndex = JsonCommon.getNextBlockBracket(body, startArrayIndex);
+		if (endArrayIndex == -1) {
+			state = STATE_ERROR;
 			return;
 		}
 
-		checkFirstParameterQuoter(startParameterIndex);
-		endParameterIndex = getParameterEndIndex(startParameterIndex);
-		parameter = body.substring(startParameterIndex, endParameterIndex + 1);
-
-		System.out.println("parameter=" + parameter);
-
-		checkColon(endParameterIndex);
-		startValueIndex = endParameterIndex + 2;
-		endValueIndex = getValueEndIndex(startValueIndex);
-
-		value = body.substring(startValueIndex, endValueIndex);
-
-		System.out.println("value=" + value.toString());
-		System.out.println("NEW CHAR=" + body.charAt(endValueIndex));
-
-		paramArray.put(parameter, value);
-
-		this.ptr = body.charAt(endValueIndex) == ',' ? endValueIndex + 1 : -1;
+		// TODO: 17.01.2022
 	}
 
-	public JsonObject parseBody() throws Exception {
-		new JsonFormatChecker(body).checkFormat();
 
-//		checkBodyLength();
-//		checkFirstAndLastChar();
-//
-//		System.out.println("POINT 1");
-//
-//		while (ptr != -1) {
-//			getParameterAndValue(ptr);
-//		}
-//		return new JSONObject(paramArray);
-		return null;
+	private void defineArrayElementType() {
+		String arrType = ARRAY_NULLS;
+
+		switch (getCurrentChar()) {
+			case '\"' -> arrType = ARRAY_STRINGS;
+			case 't', 'f' -> arrType = ARRAY_BOOLEANS;
+			case 'n' -> arrType = ARRAY_NULLS;
+			case '{' -> arrType = ARRAY_BLOCKS;
+			case '[' -> arrType = ARRAY_ARRAYS;
+			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> arrType = ARRAY_NUMBERS;
+			default -> state = STATE_ERROR;
+		}
+	}
+
+
+	private void checkNext() {
+		skipSpaces();
+
+		if (getCurrentChar() == ',') {
+			state = STATE_CHECK_KEY;
+		} else if (getCurrentChar() == '}') {
+			state = STATE_SUCCESS;
+		} else {
+			state = STATE_ERROR;
+		}
+	}
+
+
+	private void checkSuccess() {
+		while (currentIndex < endIndex && Character.isWhitespace(getCurrentChar())) {
+			currentIndex++;
+		}
+		state = currentIndex == endIndex ? STATE_SUCCESS : STATE_ERROR;
+	}
+
+
+	public int checkFormat() {
+		for (; currentIndex < endIndex; currentIndex++) {
+			switch (state) {
+				case STATE_START_BLOCK:
+					checkStartBlock();
+					break;
+				case STATE_CHECK_KEY:
+					checkKey();
+					break;
+				case STATE_COLON:
+					checkColon();
+					break;
+				case STATE_VALUE:
+					getValue();
+					break;
+				case STATE_NEXT:
+					checkNext();
+					break;
+				case STATE_SUCCESS:
+					checkSuccess();
+					break;
+				case STATE_ERROR:
+					return -1;
+			}
+		}
+		return state.equals(STATE_SUCCESS) ? 0 : -1;
 	}
 }

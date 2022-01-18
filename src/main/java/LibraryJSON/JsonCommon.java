@@ -2,6 +2,14 @@ package LibraryJSON;
 
 public class JsonCommon {
 
+//	public static int getNextDelimiter(String s, int startIndex) {
+//		int nextBracket;
+//
+//		if (s.charAt(startIndex) == '{' || s.charAt(startIndex) == '[') {
+//			return
+//		}
+//	}
+
 	public static int getNextBlockBracket(String s, int startIndex) {
 		char openBracket = s.charAt(startIndex);
 		char closeBracket;
@@ -23,7 +31,6 @@ public class JsonCommon {
 		}
 
 		for (int i = startIndex; i < s.length(); i++) {
-//			System.out.println(i + ") CURRENT CHAR: " + s.charAt(i) + " |  isText: " + isText);
 			if (s.charAt(i) =='\"') {
 				if (!isText) {
 					isText = true;
