@@ -20,16 +20,15 @@ public class JsonParserTest {
 //
 //	@Test
 //	public void incorrectEmpty() {
-//		Assert.assertEquals(-1, new JsonParser("").checkFormat());
-//		Assert.assertEquals(-1, new JsonParser("  	{  ").checkFormat());
-//		Assert.assertEquals(-1, new JsonParser("  	{").checkFormat());
-//		Assert.assertEquals(-1, new JsonParser("}").checkFormat());
+//		Assert.assertEquals(-1, JsonParser("").checkFormat());
+//		Assert.assertEquals(-1, JsonParser("  	{  ").checkFormat());
+//		Assert.assertEquals(-1, JsonParser("  	{").checkFormat());
+//		Assert.assertEquals(-1, JsonParser("}").checkFormat());
 //		Assert.assertEquals(-1, new JsonParser("{_}").checkFormat());
 //		Assert.assertEquals(-1, new JsonParser("   } ").checkFormat());
 //		Assert.assertEquals(-1, new JsonParser("{     }}").checkFormat());
 //		Assert.assertEquals(-1, new JsonParser("{{    }").checkFormat());
 //	}
-
 
 
 	@Test
@@ -45,8 +44,6 @@ public class JsonParserTest {
 		TestLibrary.testJsonFile("incorrectString/2");
 	}
 
-
-
 	@Test
 	public void correctMultiple() {
 		TestLibrary.testJsonFile("correctMultiple/1");
@@ -57,10 +54,8 @@ public class JsonParserTest {
 	@Test
 	public void incorrectMultiple() {
 		TestLibrary.testJsonFile("incorrectMultiple/1");
-	//	TestLibrary.testJsonFile("incorrectMultiple/2");
+		TestLibrary.testJsonFile("incorrectMultiple/2");
 	}
-
-
 
 	@Test
 	public void correctSpecial() {
@@ -75,8 +70,6 @@ public class JsonParserTest {
 		TestLibrary.testJsonFile("incorrectSpecial/2");
 		TestLibrary.testJsonFile("incorrectSpecial/3");
 	}
-
-
 
 	@Test
 	public void correctNumber() {
@@ -108,13 +101,11 @@ public class JsonParserTest {
 		TestLibrary.testJsonFile("incorrectBlock/1");
 	}
 
-
-
 //	@Test
 //	public void correctArray() {
 //		TestLibrary.testJsonFile("correctArray/1");
 //	}
-//
+
 //	@Test
 //	public void incorrectArray() {
 //

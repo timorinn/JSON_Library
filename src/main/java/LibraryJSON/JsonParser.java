@@ -1,5 +1,6 @@
 package LibraryJSON;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class JsonParser {
@@ -18,201 +19,171 @@ public class JsonParser {
 	final private static String ARRAY_ARRAYS = "ARRAY_ARRAYS";
 	final private static String ARRAY_NULLS = "ARRAY_NULLS";
 
-
-	private HashSet<String> keys;
-	private String state;
-	private String body;
-	private String currentKey;
-	private int currentIndex;
-	private int startIndex;
-	private int endIndex;
-
 	// todo
-//	private String processMessage;
 
-	public JsonParser(String body) throws JsonFormatException {
-		this(body, 0, body.length());
-	}
+	static class JsonParserPreferences {
+		private HashMap<String, Object> map;
+		private String state;
+		private final String body;
+		private String currentKey;
+		private Object currentValue;
+		private int currentIndex;
+		private final int endIndex;
+		private String errorMessage;
 
+		public JsonParserPreferences(String body) {
+			this(body, 0, body.length());
+		}
 
-	public JsonParser(String body, int startIndex, int endIndex) {
-		this.body = body;
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
-		this.state = STATE_START_BLOCK;
-		this.currentIndex = startIndex;
-		this.keys = new HashSet<>();
-	}
+		public JsonParserPreferences(String body, int startIndex, int endIndex) {
+			// TODO: 21.01.2022
+			this.body = body;
+			this.endIndex = endIndex;
+			this.state = STATE_START_BLOCK;
+			this.currentIndex = startIndex;
+			this.map = new HashMap<>();
+			this.errorMessage = null;
+		}
 
+		public char getCurrentChar() {
+			return body.charAt(currentIndex);
+		}
 
-	private char getCurrentChar() {
-		return body.charAt(currentIndex);
-	}
-
-
-	private void skipSpaces() {
-		//todo
-		while (currentIndex < endIndex - 1 && Character.isWhitespace(getCurrentChar())) {
-			currentIndex++;
+		private void skipSpaces() {
+			//todo
+			while (currentIndex < endIndex - 1 && Character.isWhitespace(getCurrentChar())) {
+				currentIndex++;
+			}
 		}
 	}
 
-
-	private void skipValueString() {
-		while (currentIndex < endIndex - 1) {
-			if (getCurrentChar() == '\"' && currentIndex > 0 && body.charAt(currentIndex - 1) != '\\') {
+	private static void skipValueString(JsonParserPreferences pr) {
+		while (pr.currentIndex < pr.endIndex - 1) {
+			if (pr.getCurrentChar() == '\"' && pr.currentIndex > 0 && pr.body.charAt(pr.currentIndex - 1) != '\\') {
 				break;
 			}
-			currentIndex++;
+			pr.currentIndex++;
 		}
 	}
 
 
-	private int skipKeyName() {
+	private static int skipKeyName(JsonParserPreferences pr) {
 		int cnt = 0;
 
-		while (currentIndex < endIndex - 1 && getCurrentChar() != '\"'
-				&& (Character.isAlphabetic(getCurrentChar()) || Character.isDigit(getCurrentChar()))) {
-			currentIndex++;
+		while (pr.currentIndex < pr.endIndex - 1 && pr.getCurrentChar() != '\"'
+				&& (Character.isAlphabetic(pr.getCurrentChar()) || Character.isDigit(pr.getCurrentChar()))) {
+			pr.currentIndex++;
 			cnt++;
 		}
 		return cnt;
 	}
 
 
-	private void checkStartBlock() {
-		skipSpaces();
+	private static void checkStartBlock(JsonParserPreferences pr) {
+		pr.skipSpaces();
 
-		state = getCurrentChar() == '{' ? STATE_CHECK_KEY : STATE_ERROR;
+		pr.state = pr.getCurrentChar() == '{' ? STATE_CHECK_KEY : STATE_ERROR;
 	}
 
 
 	//todo можно сделать лучше, выглядит некрасиво
-	private void checkKey() {
-//	private Object checkKey() {
-		String keyName;
+	private static void getKey(JsonParserPreferences pr) {
 		int keyLength;
-		int keyStart = currentIndex;
+		int keyStart = pr.currentIndex;
 
-		skipSpaces();
+		pr.skipSpaces();
 
-		if (getCurrentChar() == '}') {
-			state = STATE_SUCCESS;
-		} else if (getCurrentChar() == '\"') {
-			currentIndex++;
-			keyLength = skipKeyName();
-			if (getCurrentChar() == '\"' && keyLength > 0) {
-				keyName = body.substring(keyStart, currentIndex + 1);
+		if (pr.getCurrentChar() == '}') {
+			pr.state = STATE_SUCCESS;
+		} else if (pr.getCurrentChar() == '\"') {
+			pr.currentIndex++;
+			keyLength = skipKeyName(pr);
+			if (pr.getCurrentChar() == '\"' && keyLength > 0) {
+				pr.currentKey = pr.body.substring(keyStart, pr.currentIndex + 1);
+				// TODO: 22.01.2022  
 //				if (!keys.contains(keyName)) {
 //					keys.add(keyName);
-					state = STATE_COLON;
+					pr.state = STATE_COLON;
 //				} else {
 //					state = STATE_ERROR;
 //				}
 			}
 		} else {
-			state = STATE_ERROR;
+			pr.state = STATE_ERROR;
 		}
 	}
-//
-//	private String readKey() {
-//		String keyName;
-//		int keyLength;
-//		int keyStart = currentIndex;
-//
-//		skipSpaces();
-//
-//		if (getCurrentChar() == '}') {
-////			state = STATE_SUCCESS;
-//			return null;
-//		} else if (getCurrentChar() == '\"') {
-//			currentIndex++;
-//			keyLength = skipKeyName();
-//			if (getCurrentChar() == '\"' && keyLength > 0) {
-//				keyName = body.substring(keyStart, currentIndex);
-//				if (!keys.contains(keyName)) {
-//					keys.add(keyName);
-////					state = STATE_COLON;
-//					return body.substring(keyStart, currentIndex + 1);
-//				} else {
-////					state = STATE_ERROR;
-//					return null;
-//				}
-//			}
-//		} else {
-////			state = STATE_ERROR;
-//			return null;
-//		}
-//	}
-//
-	private void checkColon() {
-		skipSpaces();
-		state = getCurrentChar() == ':' ? STATE_VALUE : STATE_ERROR;
+
+
+	private static void checkColon(JsonParserPreferences pr) {
+		pr.skipSpaces();
+		pr.state = pr.getCurrentChar() == ':' ? STATE_VALUE : STATE_ERROR;
+		// TODO: 21.01.2022
 	}
 
 
-	private void getValue() {
+	private static void getValue(JsonParserPreferences pr) {
 		Object value = null;
 
-		skipSpaces();
+		pr.skipSpaces();
 
-		switch (getCurrentChar()) {
-			case '\"' -> value = getValueString();
-			case '{' -> value = getValueBlock();
-			case '[' -> getValueArray();
-			case 't', 'f', 'n' -> value = checkValueSpecial();
-			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> value = getValueNumber();
-			default -> state = STATE_ERROR;
+		switch (pr.getCurrentChar()) {
+			case '\"' -> value = getValueString(pr);
+			case '{' -> value = getValueBlock(pr);
+			case '[' -> getValueArray(pr);
+			case 't', 'f', 'n' -> value = checkValueSpecial(pr);
+			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> value = getValueNumber(pr);
 		}
 
 		if (value != null) {
-//			System.out.println(((String) value));
-			state = STATE_NEXT;
+			pr.currentValue = value;
+			pr.state = STATE_NEXT;
+		} else {
+			pr.state = STATE_ERROR;
 		}
 	}
 
 
-	private Object getValueString() {
-		int startValue = currentIndex;
+	private static Object getValueString(JsonParserPreferences pr) {
+		int startValue = pr.currentIndex;
 
-		currentIndex++;
-		skipValueString();
-		return getCurrentChar() == '\"' ? body.substring(startValue, currentIndex + 1): null;
+		pr.currentIndex++;
+		skipValueString(pr);
+		return pr.getCurrentChar() == '\"' ? pr.body.substring(startValue, pr.currentIndex + 1): null;
 	}
 
 
-	private String getValueNumber() {
+	private static String getValueNumber(JsonParserPreferences pr) {
 		boolean afterPoint = false;
 		boolean afterExp = false;
-		int startNumber = currentIndex;
+		int startNumber = pr.currentIndex;
 
-		if (getCurrentChar() == '-') {
-			if (currentIndex < endIndex - 1) {
-				currentIndex++;
+		if (pr.getCurrentChar() == '-') {
+			if (pr.currentIndex < pr.endIndex - 1) {
+				pr.currentIndex++;
 			} else {
 				return null;
 			}
 		}
 
-		if (getCurrentChar() == '0') {
-			if (currentIndex < endIndex - 1) {
-				currentIndex++;
+		if (pr.getCurrentChar() == '0') {
+			if (pr.currentIndex < pr.endIndex - 1) {
+				pr.currentIndex++;
 			} else {
 				return null;
 			}
-		} else if (Character.isDigit(getCurrentChar())) {
-			while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
-				currentIndex++;
+		} else if (Character.isDigit(pr.getCurrentChar())) {
+			while (pr.currentIndex < pr.endIndex - 1 && Character.isDigit(pr.getCurrentChar())) {
+				pr.currentIndex++;
 			}
 		} else {
 			return null;
 		}
 
-		if (getCurrentChar() == '.') {
-			if (currentIndex < endIndex - 1) {
-				currentIndex++;
-				while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
-					currentIndex++;
+		if (pr.getCurrentChar() == '.') {
+			if (pr.currentIndex < pr.endIndex - 1) {
+				pr.currentIndex++;
+				while (pr.currentIndex < pr.endIndex - 1 && Character.isDigit(pr.getCurrentChar())) {
+					pr.currentIndex++;
 					afterPoint = true;
 				}
 				if (!afterPoint) {
@@ -223,17 +194,17 @@ public class JsonParser {
 			}
 		}
 
-		if (getCurrentChar() == '-' || getCurrentChar() == '+') {
-			if (currentIndex < endIndex - 1) {
-				currentIndex++;
-				if (currentIndex < endIndex - 1 && Character.toLowerCase(getCurrentChar()) == 'e') {
-					currentIndex++;
-					if (getCurrentChar() == '0') {
+		if (pr.getCurrentChar() == '-' || pr.getCurrentChar() == '+') {
+			if (pr.currentIndex < pr.endIndex - 1) {
+				pr.currentIndex++;
+				if (pr.currentIndex < pr.endIndex - 1 && Character.toLowerCase(pr.getCurrentChar()) == 'e') {
+					pr.currentIndex++;
+					if (pr.getCurrentChar() == '0') {
 						return null;
 					}
-					while (currentIndex < endIndex - 1 && Character.isDigit(getCurrentChar())) {
+					while (pr.currentIndex < pr.endIndex - 1 && Character.isDigit(pr.getCurrentChar())) {
 						afterExp = true;
-						currentIndex++;
+						pr.currentIndex++;
 					}
 					if (!afterExp) {
 						return null;
@@ -245,12 +216,12 @@ public class JsonParser {
 				return null;
 			}
 		}
-		currentIndex--;
-		return body.substring(startNumber, currentIndex + 1);
+		pr.currentIndex--;
+		return pr.body.substring(startNumber, pr.currentIndex + 1);
 	}
 
 
-	private int strInStr(String mainStr, int startIndex, String expectedStr) {
+	private static int strInStr(String mainStr, int startIndex, String expectedStr) {
 		int mainStrLength = mainStr.length();
 		int expectedStrLength = expectedStr.length();
 		int i;
@@ -264,10 +235,10 @@ public class JsonParser {
 	}
 
 
-	private String checkValueSpecial() {
+	private static String checkValueSpecial(JsonParserPreferences pr) {
 		String valueSpecial;
 
-		switch (getCurrentChar()) {
+		switch (pr.getCurrentChar()) {
 			case 't' -> valueSpecial = "true";
 			case 'f' -> valueSpecial = "false";
 			case 'n' -> valueSpecial = "null";
@@ -276,8 +247,8 @@ public class JsonParser {
 			}
 		}
 
-		if (strInStr(body, currentIndex, valueSpecial) == 0) {
-			currentIndex += valueSpecial.length() - 1;
+		if (strInStr(pr.body, pr.currentIndex, valueSpecial) == 0) {
+			pr.currentIndex += valueSpecial.length() - 1;
 			return valueSpecial;
 		} else {
 			return null;
@@ -285,18 +256,18 @@ public class JsonParser {
 	}
 
 
-	private JsonParser getValueBlock() {
-		JsonParser jsonParser;
-		int closeBracketIndex = JsonCommon.getNextBlockBracket(body, currentIndex);
+	private static JsonObject getValueBlock(JsonParserPreferences pr) {
+		JsonObject jsonObject;
+		int closeBracketIndex = JsonCommon.getNextBlockBracket(pr.body, pr.currentIndex);
 
 		if (closeBracketIndex != -1) {
 			try {
-				jsonParser = new JsonParser(body.substring(currentIndex, closeBracketIndex + 1));
+				 jsonObject = JsonParser.getJsonObject(pr.body.substring(pr.currentIndex, closeBracketIndex + 1));
 			} catch (JsonFormatException je) {
 				return null;
 			}
-			currentIndex = closeBracketIndex;;
-			return jsonParser;
+			pr.currentIndex = closeBracketIndex;
+			return jsonObject;
 		} else {
 			return null;
 		}
@@ -304,81 +275,84 @@ public class JsonParser {
 
 
 	// TODO: 15.01.2022 дописать :-----------(
-	private void getValueArray() {
-		int startArrayIndex = currentIndex;
+	private static void getValueArray(JsonParserPreferences pr) {
+		int startArrayIndex = pr.currentIndex;
 		int endArrayIndex;
 
-		endArrayIndex = JsonCommon.getNextBlockBracket(body, startArrayIndex);
+		endArrayIndex = JsonCommon.getNextBlockBracket(pr.body, startArrayIndex);
 		if (endArrayIndex == -1) {
-			state = STATE_ERROR;
-			return;
+			// TODO: 21.01.2022
+			pr.state = STATE_ERROR;
 		}
-
 		// TODO: 17.01.2022
 	}
 
 
-	private void defineArrayElementType() {
-		String arrType = ARRAY_NULLS;
+//	private void defineArrayElementType() {
+//		String arrType = ARRAY_NULLS;
+//
+//		switch (getCurrentChar()) {
+//			case '\"' -> arrType = ARRAY_STRINGS;
+//			case 't', 'f' -> arrType = ARRAY_BOOLEANS;
+//			case 'n' -> arrType = ARRAY_NULLS;
+//			case '{' -> arrType = ARRAY_BLOCKS;
+//			case '[' -> arrType = ARRAY_ARRAYS;
+//			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> arrType = ARRAY_NUMBERS;
+//			default -> state = STATE_ERROR;
+//		}
+//	}
 
-		switch (getCurrentChar()) {
-			case '\"' -> arrType = ARRAY_STRINGS;
-			case 't', 'f' -> arrType = ARRAY_BOOLEANS;
-			case 'n' -> arrType = ARRAY_NULLS;
-			case '{' -> arrType = ARRAY_BLOCKS;
-			case '[' -> arrType = ARRAY_ARRAYS;
-			case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> arrType = ARRAY_NUMBERS;
-			default -> state = STATE_ERROR;
-		}
-	}
 
+	private static void checkNext(JsonParserPreferences pr) {
+		pr.skipSpaces();
 
-	private void checkNext() {
-		skipSpaces();
-
-		if (getCurrentChar() == ',') {
-			state = STATE_CHECK_KEY;
-		} else if (getCurrentChar() == '}') {
-			state = STATE_SUCCESS;
+		if (pr.getCurrentChar() == ',' || pr.getCurrentChar() == '}') {
+			if (!pr.map.containsKey(pr.currentKey)) {
+				pr.state = (pr.getCurrentChar() == ',' ? STATE_CHECK_KEY : STATE_SUCCESS);
+				pr.map.put(pr.currentKey, pr.currentValue);
+			} else {
+				pr.errorMessage = "Key '" + pr.currentKey + "' already exists in map.";
+				pr.state = STATE_ERROR;
+			}
 		} else {
-			state = STATE_ERROR;
+			// TODO: 21.01.2022
+			pr.errorMessage = "Incorrect symbol at the end of request body.";
+			pr.state = STATE_ERROR;
 		}
 	}
 
 
-	private void checkSuccess() {
-		while (currentIndex < endIndex && Character.isWhitespace(getCurrentChar())) {
-			currentIndex++;
+	private static void checkSuccess(JsonParserPreferences pr) {
+		while (pr.currentIndex < pr.endIndex && Character.isWhitespace(pr.getCurrentChar())) {
+			pr.currentIndex++;
 		}
-		state = currentIndex == endIndex ? STATE_SUCCESS : STATE_ERROR;
+		if (pr.currentIndex == pr.endIndex) {
+			pr.state = STATE_SUCCESS;
+		} else {
+			pr.errorMessage = "Incorrect json end. Unexpected symbol '" + pr.getCurrentChar()
+					+ "' on position " + pr.currentIndex + ".";
+			pr.state = STATE_ERROR;
+		}
 	}
 
 
-	public int checkFormat() {
-		for (; currentIndex < endIndex; currentIndex++) {
-			switch (state) {
-				case STATE_START_BLOCK:
-					checkStartBlock();
-					break;
-				case STATE_CHECK_KEY:
-					checkKey();
-					break;
-				case STATE_COLON:
-					checkColon();
-					break;
-				case STATE_VALUE:
-					getValue();
-					break;
-				case STATE_NEXT:
-					checkNext();
-					break;
-				case STATE_SUCCESS:
-					checkSuccess();
-					break;
-				case STATE_ERROR:
-					return -1;
+	public static JsonObject getJsonObject(String body) throws JsonFormatException {
+		JsonParserPreferences pr = new JsonParserPreferences(body);
+
+		for (; pr.currentIndex < pr.endIndex && !STATE_ERROR.equals(pr.state); pr.currentIndex++) {
+			switch (pr.state) {
+				case STATE_START_BLOCK -> checkStartBlock(pr);
+				case STATE_CHECK_KEY -> getKey(pr);
+				case STATE_COLON -> checkColon(pr);
+				case STATE_VALUE -> getValue(pr);
+				case STATE_NEXT -> checkNext(pr);
+				case STATE_SUCCESS -> checkSuccess(pr);
 			}
 		}
-		return state.equals(STATE_SUCCESS) ? 0 : -1;
+		if (!STATE_SUCCESS.equals(pr.state)) {
+			// TODO: 21.01.2022
+			throw new JsonFormatException("Pr.errorMessage: " + pr.errorMessage);
+		}
+		return new JsonObject();
 	}
 }

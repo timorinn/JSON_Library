@@ -19,11 +19,6 @@ public class JsonObject {
 		map.put(key, value);
 	}
 
-	public String getValue(String path) {
-		// todo добавить разделение по уровням структур
-		return (String) map.get(path);
-	}
-
 	public Set getAllKeys() {
 		return map.keySet();
 	}
