@@ -14,7 +14,6 @@ public class TestLibrary {
 
 		if (jsonText != null) {
 			try {
-				//Assert.assertEquals(expectedResult, JsonParser.getJsonObject(jsonText));
 				JsonParser.getJsonObject(jsonText);
 				if (expectedResult == - 1) {
 					Assert.fail("Expected JsonFormatException.");

@@ -1,3 +1,5 @@
+import LibraryJSON.JsonFormatException;
+import LibraryJSON.JsonObject;
 import LibraryJSON.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,124 +31,389 @@ public class JsonParserTest {
 //		Assert.assertEquals(-1, new JsonParser("{     }}").checkFormat());
 //		Assert.assertEquals(-1, new JsonParser("{{    }").checkFormat());
 //	}
-
+//
 
 	@Test
-	public void correctString() {
-		TestLibrary.testJsonFile("correctString/1");
-		TestLibrary.testJsonFile("correctString/2");
-		TestLibrary.testJsonFile("correctString/3");
+	public void correctString_1() {
+		String fileName = "correct/string/1";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("\"value\"", jsonObject.getValue("key"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void incorrectString() {
-		TestLibrary.testJsonFile("incorrectString/1");
-		TestLibrary.testJsonFile("incorrectString/2");
+	public void correctString_2() {
+		String fileName = "correct/string/2";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("\"  v a _ lue \"", jsonObject.getValue("key"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void correctMultiple() {
-		TestLibrary.testJsonFile("correctMultiple/1");
-		TestLibrary.testJsonFile("correctMultiple/2");
-		TestLibrary.testJsonFile("correctMultiple/3");
+	public void correctString_3() {
+		String fileName = "correct/string/3";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("\"  v a _ l\n   u  e \"", jsonObject.getValue("key"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+
+	@Test
+	public void correctNumber_1() {
+		String fileName = "correct/number/1";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("123", jsonObject.getValue("k"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void incorrectMultiple() {
-		TestLibrary.testJsonFile("incorrectMultiple/1");
-		TestLibrary.testJsonFile("incorrectMultiple/2");
+	public void correctNumber_2() {
+		String fileName = "correct/number/2";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("-0.123", jsonObject.getValue("k"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void correctSpecial() {
-		TestLibrary.testJsonFile("correctSpecial/1");
-		TestLibrary.testJsonFile("correctSpecial/2");
-		TestLibrary.testJsonFile("correctSpecial/3");
+	public void correctNumber_3() {
+		String fileName = "correct/number/3";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("123+e18", jsonObject.getValue("k"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void incorrectSpecial() {
-		TestLibrary.testJsonFile("incorrectSpecial/1");
-		TestLibrary.testJsonFile("incorrectSpecial/2");
-		TestLibrary.testJsonFile("incorrectSpecial/3");
+	public void correctNumber_4() {
+		String fileName = "correct/number/4";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("0", jsonObject.getValue("k"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void correctNumber() {
-		TestLibrary.testJsonFile("correctNumber/1");
-		TestLibrary.testJsonFile("correctNumber/2");
-		TestLibrary.testJsonFile("correctNumber/3");
-		TestLibrary.testJsonFile("correctNumber/4");
-		TestLibrary.testJsonFile("correctNumber/5");
+	public void correctNumber_5() {
+		String fileName = "correct/number/5";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("-0.0", jsonObject.getValue("k"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+
+	@Test
+	public void correctSpecial_1() {
+		String fileName = "correct/special/1";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void incorrectNumber() {
-		// TODO: 16.01.2022
+	public void correctSpecial_2() {
+		String fileName = "correct/special/2";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("false", jsonObject.getValue("2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
 	@Test
-	public void correctBlock() {
-		TestLibrary.testJsonFile("correctBlock/1");
-		TestLibrary.testJsonFile("correctBlock/2");
-		TestLibrary.testJsonFile("correctBlock/3");
-		TestLibrary.testJsonFile("correctBlock/4");
-		TestLibrary.testJsonFile("correctBlock/5");
+	public void correctSpecial_3() {
+		String fileName = "correct/special/3";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("null", jsonObject.getValue("2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
 	}
 
-	@Test
-	public void incorrectBlock() {
-		TestLibrary.testJsonFile("incorrectBlock/1");
-		TestLibrary.testJsonFile("incorrectBlock/1");
-		TestLibrary.testJsonFile("incorrectBlock/1");
-	}
 
+// TODO: 23.01.2022
 //	@Test
-//	public void correctArray() {
-//		TestLibrary.testJsonFile("correctArray/1");
-//	}
-
-//	@Test
-//	public void incorrectArray() {
+//	public void correctArray_1() {
+//		String fileName = "correct/array/1";
+//		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+//		JsonObject jsonObject;
 //
-//	}
-
-
-
-//
-//	@Test
-//	public void checkStartBlockCorrectTest() {
-//		String methodName = "checkStartBlock";
-//		Method method;
-//		JsonFormatChecker jsonFormatChecker = new JsonFormatChecker("{");
-//
-//		try {
-//			method = TestLibrary.getMethod(JsonFormatChecker.class, methodName, String.class, int.class, String.class);
-//			method.setAccessible(true);
-//			method.invoke(jsonFormatChecker, "}");
-//
-//			Assert.assertEquals(STATUS_KEY_FIRST_QUOTER, jsonFormatChecker.);
-//		} catch (Exception e) {
-//			Assert.fail("Something problems: " + e.toString());
+//		if (jsonText != null) {
+//			try {
+//				jsonObject = JsonParser.getJsonObject(jsonText);
+//				//Assert.assertEquals("null", jsonObject.getValue("2"));
+//			} catch (JsonFormatException e) {
+//				Assert.fail(e.getMessage());
+//			}
+//		} else {
+//			Assert.fail("File '" + fileName + "' does not exists.");
 //		}
 //	}
-//
+
+	@Test
+	public void correctArray_2() {
+		String fileName = "correct/array/2";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/[0]"));
+				Assert.assertEquals("false", jsonObject.getValue("key/[1]"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctArray_3() {
+		String fileName = "correct/array/3";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/[0]"));
+				Assert.assertEquals("false", jsonObject.getValue("key/[1]"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctArray_4() {
+		String fileName = "correct/array/4";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/[0]"));
+				Assert.assertEquals("false", jsonObject.getValue("key/[1]"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
 //	@Test
-//	public void checkStartBlockIncorrectTest() {
-//		String methodName = "checkStartBlock";
-//		Method method;
-//		JsonFormatChecker jsonFormatChecker = new JsonFormatChecker("}");
-//
-//		try {
-//
-//			method = TestLibrary.getMethod(JsonFormatChecker.class, methodName, String.class, int.class, String.class);
-//			method.setAccessible(true);
-//			method.invoke(jsonFormatChecker, "}");
-//		} catch (InvocationTargetException invocationTargetException) {
-//			//тестирование успешно
-//		} catch (Exception e) {
-//			// todo
-//			Assert.fail("Something problems: " + e.toString());
-//		}
+//	public void incorrectNumber() {
+//		// TODO: 16.01.2022
 //	}
+
+
+	@Test
+	public void correctBlock_1() {
+		String fileName = "correct/block/1";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/key"));
+				Assert.assertEquals("\"jojo\"", jsonObject.getValue("key/key2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctBlock_2() {
+		String fileName = "correct/block/2";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/key"));
+				Assert.assertEquals("\"jojo\"", jsonObject.getValue("key/key2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctBlock_3() {
+		String fileName = "correct/block/3";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/key"));
+				Assert.assertEquals("\"jo}{jo\"", jsonObject.getValue("key/key2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctBlock_4() {
+		String fileName = "correct/block/4";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/key"));
+				Assert.assertEquals("\"}o\\\"}  j }\"", jsonObject.getValue("key/key2"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
+
+	@Test
+	public void correctBlock_5() {
+		String fileName = "correct/block/5";
+		String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
+		JsonObject jsonObject;
+
+		if (jsonText != null) {
+			try {
+				jsonObject = JsonParser.getJsonObject(jsonText);
+				Assert.assertEquals("true", jsonObject.getValue("key/key"));
+				Assert.assertEquals("\"}o\\\"}j}\"", jsonObject.getValue("key/key2"));
+				Assert.assertEquals("\"}s\\\"tr\"", jsonObject.getValue("k/k2/s"));
+			} catch (JsonFormatException e) {
+				Assert.fail(e.getMessage());
+			}
+		} else {
+			Assert.fail("File '" + fileName + "' does not exists.");
+		}
+	}
 }
