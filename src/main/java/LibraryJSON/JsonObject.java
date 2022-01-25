@@ -7,13 +7,14 @@ public class JsonObject {
 
 
 	public JsonObject() {
-		map = new HashMap<>();
+		map = new TreeMap<>();
 	}
 
 	public JsonObject(Map<String, Object> map) {
 		this.map = map;
 	}
 
+	// TODO: 25.01.2022
 	public void addNewValue(String key, Object value) throws JsonFormatException {
 		if (map.containsKey(key)) {
 			throw new JsonFormatException("Key '" + key + "' already exists.");
@@ -21,9 +22,44 @@ public class JsonObject {
 		map.put(key, value);
 	}
 
+
 	public Set getAllKeys() {
 		return map.keySet();
 	}
+
+
+	public String getStringJson() {
+		return getStringJson(0, false);
+	}
+
+
+	private String getStringJson(int tabs, boolean isSpace) {
+		StringBuilder stringResult = new StringBuilder();
+		String offset = "\t".repeat(Math.max(0, tabs));
+		Object value;
+
+		stringResult.append(isSpace ? ' ' : "")
+				.append("{\n");
+		for (String key : map.keySet()) {
+			stringResult.append(offset)
+					.append('\t')
+					.append('"')
+					.append(key)
+					.append("\":");
+			value = map.get(key);
+
+			if (JsonObject.class.equals(value.getClass())) {
+				stringResult.append(((JsonObject) value).getStringJson(tabs + 1, true));
+			} else if (String.class.equals(value.getClass())) {
+				stringResult.append((String) value);
+			}
+			stringResult.append(',');
+			stringResult.append('\n');
+		}
+		stringResult.append(offset).append("}");
+		return stringResult.toString();
+	}
+
 
 	private int getArrayElementIndex(String part) {
 		int partLength = part.length();
@@ -40,6 +76,7 @@ public class JsonObject {
 		}
 		return -1;
 	}
+
 
 	public String getValue(String keyPath) throws JsonFormatException {
 		String[] fullPath = keyPath.split("/");
