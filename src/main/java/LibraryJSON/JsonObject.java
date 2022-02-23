@@ -27,40 +27,6 @@ public class JsonObject {
 		return map.keySet();
 	}
 
-
-	public String getStringJson() {
-		return getStringJson(0, false);
-	}
-
-
-	private String getStringJson(int tabs, boolean isSpace) {
-		StringBuilder stringResult = new StringBuilder();
-		String offset = "\t".repeat(Math.max(0, tabs));
-		Object value;
-
-		stringResult.append(isSpace ? ' ' : "")
-				.append("{\n");
-		for (String key : map.keySet()) {
-			stringResult.append(offset)
-					.append('\t')
-					.append('"')
-					.append(key)
-					.append("\":");
-			value = map.get(key);
-
-			if (JsonObject.class.equals(value.getClass())) {
-				stringResult.append(((JsonObject) value).getStringJson(tabs + 1, true));
-			} else if (String.class.equals(value.getClass())) {
-				stringResult.append((String) value);
-			}
-			stringResult.append(',');
-			stringResult.append('\n');
-		}
-		stringResult.append(offset).append("}");
-		return stringResult.toString();
-	}
-
-
 	private int getArrayElementIndex(String part) {
 		int partLength = part.length();
 		int arrayElementIndex = 0;
@@ -78,7 +44,8 @@ public class JsonObject {
 	}
 
 
-	public String getValue(String keyPath) throws JsonFormatException {
+//	public String getValue(String keyPath) throws JsonFormatException {
+	public Object getValue(String keyPath) throws JsonFormatException {
 		String[] fullPath = keyPath.split("/");
 		int arrayElementIndex;
 		Object value = this;
@@ -100,6 +67,8 @@ public class JsonObject {
 				throw new JsonFormatException("Incorrect path of value.");
 			}
 		}
-		return String.class.equals(value.getClass()) ? (String) value : null;
+//		return String.class.equals(value.getClass()) ? (String) value : null;
+		return value;
+
 	}
 }
