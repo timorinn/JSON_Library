@@ -1,4 +1,4 @@
-package LibraryJSON;
+package jsonlib;
 
 public class JsonCommon {
 

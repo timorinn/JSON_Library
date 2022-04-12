@@ -1,6 +1,6 @@
-import LibraryJSON.JsonFormatException;
-import LibraryJSON.JsonObject;
-import LibraryJSON.JsonParser;
+import jsonlib.JsonFormatException;
+import jsonlib.JsonObject;
+import jsonlib.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
 

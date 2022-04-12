@@ -1,6 +1,6 @@
-import LibraryJSON.JsonFormatException;
-import LibraryJSON.JsonObject;
-import LibraryJSON.JsonParser;
+import jsonlib.JsonFormatException;
+import jsonlib.JsonObject;
+import jsonlib.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +13,6 @@ public class JsonParserCorrectBlockTest {
 
         if (jsonText != null) {
             try {
-
                 jsonObject = JsonParser.getJsonObject(jsonText);
                 Assert.assertEquals("true", jsonObject.getValue("key/key"));
                 Assert.assertEquals("\"jojo\"", jsonObject.getValue("key/key2"));
@@ -33,7 +32,6 @@ public class JsonParserCorrectBlockTest {
 
         if (jsonText != null) {
             try {
-
                 jsonObject = JsonParser.getJsonObject(jsonText);
                 Assert.assertEquals("true", jsonObject.getValue("key/key"));
                 Assert.assertEquals("\"jojo\"", jsonObject.getValue("key/key2"));
@@ -53,7 +51,6 @@ public class JsonParserCorrectBlockTest {
 
         if (jsonText != null) {
             try {
-
                 jsonObject = JsonParser.getJsonObject(jsonText);
                 Assert.assertEquals("true", jsonObject.getValue("key/key"));
                 Assert.assertEquals("\"jo}{jo\"", jsonObject.getValue("key/key2"));
@@ -96,9 +93,6 @@ public class JsonParserCorrectBlockTest {
                 jsonObject = JsonParser.getJsonObject(jsonText);
 
                 //TODO: 26.01.2022
-//              System.out.println("SOUTSOUT!");
-//              System.out.println(jsonObject.getStringJson());
-
                 Assert.assertEquals("true", jsonObject.getValue("key/key"));
                 Assert.assertEquals("\"}o\\\"}j}\"", jsonObject.getValue("key/key2"));
                 Assert.assertEquals("\"}s\\\"tr\"", jsonObject.getValue("k/k2/s"));

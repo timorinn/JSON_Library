@@ -1,5 +1,5 @@
-import LibraryJSON.JsonFormatException;
-import LibraryJSON.JsonParser;
+import jsonlib.JsonFormatException;
+import jsonlib.JsonParser;
 import org.junit.Assert;
 
 import java.nio.file.Files;
@@ -16,7 +16,7 @@ public class TestLibrary {
 			try {
 				JsonParser.getJsonObject(jsonText);
 				if (expectedResult == - 1) {
-					Assert.fail("Expected JsonFormatException.");
+					Assert.fail("Expected jsonlib.JsonFormatException.");
 				}
 			} catch (JsonFormatException e) {
 				if (expectedResult == 0) {

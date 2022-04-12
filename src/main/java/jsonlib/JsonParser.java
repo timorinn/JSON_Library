@@ -1,7 +1,7 @@
-package LibraryJSON;
+package jsonlib;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class JsonParser {
 	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
@@ -21,7 +21,7 @@ public class JsonParser {
 
 	
 	static class JsonParserPreferences {
-		private final HashMap<String, Object> map;
+		private final LinkedHashMap<String, Object> map;
 		private String state;
 		private final String body;
 		private String currentKey;
@@ -39,9 +39,10 @@ public class JsonParser {
 			this.endIndex = endIndex;
 			this.state = STATE_START_BLOCK;
 			this.currentIndex = startIndex;
-			this.map = new HashMap<>();
+			this.map = new LinkedHashMap<>();
 			this.errorMessage = null;
 		}
+
 
 		public char getCurrentChar() {
 			return body.charAt(currentIndex);
@@ -335,7 +336,7 @@ public class JsonParser {
 
 				value = getValue(pr);
 				if (value == null) {
-					return null;
+					return arrayList;
 				}
 
 				arrayList.add(value);
@@ -411,9 +412,10 @@ public class JsonParser {
 				case STATE_SUCCESS -> checkSuccess(pr);
 			}
 		}
+
 		if (!STATE_SUCCESS.equals(pr.state)) {
-			// TODO: 23.01.2022  
-			throw new JsonFormatException("Pr.errorMessage: " + pr.errorMessage);
+			// TODO: 23.01.2022
+			throw new JsonFormatException("Pr.errorMessage: " + pr.errorMessage + "  " + pr.state);
 		}
 		return new JsonObject(pr.map);
 	}
