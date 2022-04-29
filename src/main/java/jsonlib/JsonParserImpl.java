@@ -1,9 +1,13 @@
 package jsonlib;
 
+import jsonlib.exceptions.JsonFormatException;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
-public class JsonParser {
+public class JsonParserImpl {
 	final private static String STATE_START_BLOCK = "STATE_START_BLOCK";
 	final private static String STATE_CHECK_KEY = "STATE_CHECK_KEY";
 	final private static String STATE_COLON = "STATE_COLON";
@@ -19,8 +23,8 @@ public class JsonParser {
 	final private static String ARRAY_ARRAYS = "ARRAY_ARRAYS";
 	final private static String ARRAY_NULLS = "ARRAY_NULLS";
 
-	
-	static class JsonParserPreferences {
+
+	private static class JsonParserPreferences {
 		private final LinkedHashMap<String, Object> map;
 		private String state;
 		private final String body;
@@ -30,9 +34,11 @@ public class JsonParser {
 		private final int endIndex;
 		private String errorMessage;
 
+
 		public JsonParserPreferences(String body) {
 			this(body, 0, body.length());
 		}
+
 
 		public JsonParserPreferences(String body, int startIndex, int endIndex) {
 			this.body = body;
@@ -46,13 +52,6 @@ public class JsonParser {
 
 		public char getCurrentChar() {
 			return body.charAt(currentIndex);
-		}
-
-		
-		private void skipSpaces() {
-			while (currentIndex < endIndex - 1 && Character.isWhitespace(getCurrentChar())) {
-				currentIndex++;
-			}
 		}
 
 		
@@ -86,7 +85,40 @@ public class JsonParser {
 			}
 			return -1;
 		}
+
+
+		private void skipSpaces() {
+			while (currentIndex < endIndex - 1 && Character.isWhitespace(getCurrentChar())) {
+				currentIndex++;
+			}
+		}
 	}
+
+
+	private JsonParserImpl() { }
+
+
+	public static JsonObjectImp parse(String body) throws JsonFormatException {
+		JsonParserPreferences pr = new JsonParserPreferences(body);
+
+		for (; pr.currentIndex < pr.endIndex && !STATE_ERROR.equals(pr.state); pr.currentIndex++) {
+			switch (pr.state) {
+				case STATE_START_BLOCK -> checkStartBlock(pr);
+				case STATE_CHECK_KEY -> processKey(pr);
+				case STATE_COLON -> checkColon(pr);
+				case STATE_VALUE -> processValue(pr);
+				case STATE_NEXT -> checkNext(pr);
+				case STATE_SUCCESS -> checkSuccess(pr);
+			}
+		}
+
+		if (!STATE_SUCCESS.equals(pr.state)) {
+			// TODO: 23.01.2022
+			throw new JsonFormatException("Pr.errorMessage: " + pr.errorMessage + "  " + pr.state);
+		}
+		return new JsonObjectImp(pr.map);
+	}
+
 
 	private static void skipValueString(JsonParserPreferences pr) {
 		while (pr.currentIndex < pr.endIndex - 1) {
@@ -290,18 +322,18 @@ public class JsonParser {
 	}
 
 
-	private static JsonObject getValueBlock(JsonParserPreferences pr) {
+	private static JsonObjectImp getValueBlock(JsonParserPreferences pr) {
 		int closeBracketIndex = pr.getNextBlockBracket();
-		JsonObject jsonObject;
+		JsonObjectImp jsonObjectImp;
 
 		if (closeBracketIndex != -1) {
 			try {
-				 jsonObject = JsonParser.getJsonObject(pr.body.substring(pr.currentIndex, closeBracketIndex + 1));
+				 jsonObjectImp = JsonParserImpl.parse(pr.body.substring(pr.currentIndex, closeBracketIndex + 1));
 			} catch (JsonFormatException je) {
 				return null;
 			}
 			pr.currentIndex = closeBracketIndex;
-			return jsonObject;
+			return jsonObjectImp;
 		} else {
 			return null;
 		}
@@ -396,27 +428,5 @@ public class JsonParser {
 					+ "' on position " + pr.currentIndex + ".";
 			pr.state = STATE_ERROR;
 		}
-	}
-
-
-	public static JsonObject getJsonObject(String body) throws JsonFormatException {
-		JsonParserPreferences pr = new JsonParserPreferences(body);
-
-		for (; pr.currentIndex < pr.endIndex && !STATE_ERROR.equals(pr.state); pr.currentIndex++) {
-			switch (pr.state) {
-				case STATE_START_BLOCK -> checkStartBlock(pr);
-				case STATE_CHECK_KEY -> processKey(pr);
-				case STATE_COLON -> checkColon(pr);
-				case STATE_VALUE -> processValue(pr);
-				case STATE_NEXT -> checkNext(pr);
-				case STATE_SUCCESS -> checkSuccess(pr);
-			}
-		}
-
-		if (!STATE_SUCCESS.equals(pr.state)) {
-			// TODO: 23.01.2022
-			throw new JsonFormatException("Pr.errorMessage: " + pr.errorMessage + "  " + pr.state);
-		}
-		return new JsonObject(pr.map);
 	}
 }

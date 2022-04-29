@@ -1,20 +1,20 @@
-import jsonlib.JsonFormatException;
-import jsonlib.JsonObject;
-import jsonlib.JsonParser;
+import jsonlib.exceptions.JsonFormatException;
+import jsonlib.JsonObjectImp;
+import jsonlib.JsonParserImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class JsonParserCorrectSpecialTest {
+public class JsonParserImplCorrectSpecialTest {
     @Test
     public void correctSpecial_1() {
         String fileName = "correct/special/1";
         String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
-        JsonObject jsonObject;
+        JsonObjectImp jsonObjectImp;
 
         if (jsonText != null) {
             try {
-                jsonObject = JsonParser.getJsonObject(jsonText);
-                Assert.assertEquals("true", jsonObject.getValue("key"));
+                jsonObjectImp = JsonParserImpl.parse(jsonText);
+                Assert.assertEquals("true", jsonObjectImp.getValue("key"));
             } catch (JsonFormatException e) {
                 Assert.fail(e.getMessage());
             }
@@ -27,12 +27,12 @@ public class JsonParserCorrectSpecialTest {
     public void correctSpecial_2() {
         String fileName = "correct/special/2";
         String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
-        JsonObject jsonObject;
+        JsonObjectImp jsonObjectImp;
 
         if (jsonText != null) {
             try {
-                jsonObject = JsonParser.getJsonObject(jsonText);
-                Assert.assertEquals("false", jsonObject.getValue("2"));
+                jsonObjectImp = JsonParserImpl.parse(jsonText);
+                Assert.assertEquals("false", jsonObjectImp.getValue("2"));
             } catch (JsonFormatException e) {
                 Assert.fail(e.getMessage());
             }
@@ -45,12 +45,12 @@ public class JsonParserCorrectSpecialTest {
     public void correctSpecial_3() {
         String fileName = "correct/special/3";
         String jsonText = TestLibrary.getStringFromFileFromResources(fileName);
-        JsonObject jsonObject;
+        JsonObjectImp jsonObjectImp;
 
         if (jsonText != null) {
             try {
-                jsonObject = JsonParser.getJsonObject(jsonText);
-                Assert.assertEquals("null", jsonObject.getValue("2"));
+                jsonObjectImp = JsonParserImpl.parse(jsonText);
+                Assert.assertEquals("null", jsonObjectImp.getValue("2"));
             } catch (JsonFormatException e) {
                 Assert.fail(e.getMessage());
             }
