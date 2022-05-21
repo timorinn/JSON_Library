@@ -1,0 +1,5 @@
+package jsonlib;
+
+public enum JsonParserState {
+	STATE_START_BLOCK, STATE_CHECK_KEY, STATE_COLON, STATE_VALUE, STATE_SUCCESS, STATE_ERROR, STATE_NEXT;
+}
